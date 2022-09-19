@@ -45,7 +45,6 @@ const App = () => {
   ]
    
   const [selected, setSelected] = useState(0)
-  console.log(anecdotes[selected])
   const [allVotes, setAllVotes] = useState(new Uint8Array(anecdotes.length))
 
   const handleVoteClick = () => {
@@ -58,6 +57,7 @@ const App = () => {
     const arrayIdx = Math.floor(Math.random() * anecdotes.length)
     setSelected(arrayIdx)
   }
+
 
   return (
     <div>
