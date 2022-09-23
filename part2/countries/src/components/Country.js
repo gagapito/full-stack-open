@@ -6,8 +6,12 @@ const Country = ({ country }) => {
     const [weather, setWeather] = useState([])
 
     useEffect(() => {
+        let accessKey = process.env.REACT_APP_API_KEY
+        let lat = country.capitalInfo.latlng[0]
+        let lon = country.capitalInfo.latlng[1]
+
         axios
-            .get(`https://api.openweathermap.org/data/2.5/weather?lat=${country.capitalInfo.latlng[0]}&lon=${country.capitalInfo.latlng[1]}&appid=${process.env.REACT_APP_API_KEY}`)
+            .get(`https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lon}&appid=${accessKey}`)
             .then(response => {
                 const apiResponse = response.data;
                 console.log(apiResponse)

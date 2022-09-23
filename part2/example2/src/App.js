@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import axios from 'axios'
 import Note from './components/Note'
+import noteService from './services/notes'
 
 const App = () => {
   const [notes, setNotes] = useState([])
@@ -8,15 +8,42 @@ const App = () => {
   const [showAll, setShowAll] = useState(true)
 
   useEffect(() => {
-    console.log('effect')
-    axios
-      .get('http://localhost:3001/notes')
-      .then(response => {
-        console.log('promise fulfilled')
-        setNotes(response.data)
+    noteService
+      .getAll()
+      .then(initialNotes => {
+        setNotes(initialNotes)
       })  
   }, [])
-  console.log('render', notes.length, 'notes')
+
+  const toggleImportanceOf = (id) => {
+    // defines the unique url for each note resource based on its id
+    // find method is used to find the note we want to modify, and we then assign it to the note variable
+    const note = notes.find(n => n.id === id)
+    // create a new object that is an exact copy of the old note, apart from the important property
+    // ...note (spread syntax) gets all the properties of a note
+    // the important: !note.important sets the important property to its negation
+    const changedNote = { ...note, important: !note.important}
+    
+    /*
+    the new note it then sent to the backend where it will replace the old object
+    map method crates a new array by mapping every item from the old array into an item in the new array
+    n.id !== id when true simply copies the item from the old array into the new array
+    if false then the note object reutrned by the server is added to the array instead
+    TIP: this method is dont by creating a shallow copy of the array meaning the values of the new object are the
+    as the old object. do it like this because you cannot mutate the state directly in React
+    */ 
+    noteService
+      .update(id, changedNote) 
+      .then(returnedNote => {
+        setNotes(notes.map(note => note.id !== id ? note : returnedNote))
+      })
+      .catch(error => {
+        alert(
+          `the note '${note.content}' was already deleted from server`
+        )
+        setNotes(notes.filter(n => n.id !== id))
+      })
+  }
 
   const addNote = (event) => {
     event.preventDefault()
@@ -27,8 +54,12 @@ const App = () => {
       id: notes.length + 1
     }
 
-    setNotes(notes.concat(noteObject))
-    setNewNote('')
+    noteService
+      .create(noteObject)
+      .then(returnedNote => {
+        setNotes(notes.concat(returnedNote))
+        setNewNote('')
+      })
   }
 
   const handleNoteChange = (event) => {
@@ -50,7 +81,11 @@ const App = () => {
       </div>
       <ul>
         {notesToShow.map(note => 
-          <Note key={note.id} note={note} />
+          <Note 
+            key={note.id} 
+            note={note}
+            toggleImportance={() => toggleImportanceOf(note.id)} 
+          />
         )}
       </ul>
       <form onSubmit={addNote}>
