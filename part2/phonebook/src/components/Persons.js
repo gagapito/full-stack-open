@@ -1,16 +1,15 @@
 import React from 'react'
-import Person from './Person'
 
-const Persons = ({persons, data }) => {
-    return (
-        <div>
-            {
-            data.length !== 0 ? 
-            data.map(person => <Person key={person.name} person={person.name} number={person.number} />) :
-            persons.map(person => <Person key={person.name} person={person.name} number={person.number} />)
-            }
-        </div>
-    )
+const Persons = ({persons, data, removePerson }) => {
+    if (data.length !== 0) {
+        return data.map(person => 
+            <p key={person.name}>{person.name} {person.number} <button onClick={() => removePerson(person.id)}>delete</button></p>       
+        )
+    } else {
+        return persons.map(person =>
+            <p key={person.name}>{person.name} {person.number} <button onClick={() => removePerson(person.id)}>delete</button></p>       
+        )
+    }
 }
 
 export default Persons
