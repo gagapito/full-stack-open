@@ -18,9 +18,17 @@ const App = () => {
       })
   }, [])
 
+  const searchItems = (event) => {
+    if (event.target.value.trim().length === 0) {
+      setFilteredData([])
+    }
+    const filteredData = persons.filter(person => person.name.toLowerCase() === event.target.value.toLowerCase())
+    setFilteredData(filteredData)
+  } 
+
   const addPerson = (event) => {
     event.preventDefault()
-    const person = persons.filter(person => person.name.toLowerCase() === newName.toLowerCase())
+    const person = persons.filter(p => p.name.toLowerCase() === newName.toLowerCase())
 
     const personToAdd = person[0]
     const updatedPerson = {...personToAdd, number: newNumber}
@@ -30,25 +38,41 @@ const App = () => {
         personService
           .update(updatedPerson.id, updatedPerson)
           .then(returnedPerson => {
-            console.log(`${returnedPerson.name} successfully updated`)
-            setPersons(persons.map(person => person.id !== personToAdd.id ? person : returnedPerson))
+            setPersons(persons.map(p => p.id !== personToAdd.id ? person : returnedPerson))
             setNewName('')
             setNewNumber('')
           })
-    } else {
-      const personToAdd = {
-        name: newName,
-        number: newNumber,
-        id: person.length + 1
       }
-      personService
-        .create(personToAdd)
+    } else {
+      if (persons.filter(p => p.id === persons.length + 1)) {
+        let lastPerson = persons.at(-1)
+
+        const newPersonObject = {
+          name: newName,
+          number: newNumber,
+          id: lastPerson.id + 1
+        }
+        personService
+        .create(newPersonObject)
         .then(returnedPerson => {
           setPersons(persons.concat(returnedPerson))
           setNewName('')
           setNewNumber('')
         })
-      }
+      } else {
+        const newPersonObject = {
+          name: newName,
+          number: newNumber,
+          id: persons.length + 1
+        }
+        personService
+        .create(newPersonObject)
+        .then(returnedPerson => {
+          setPersons(persons.concat(returnedPerson))
+          setNewName('')
+          setNewNumber('')
+        })
+      } 
     }
   }
   
@@ -59,22 +83,16 @@ const App = () => {
   const handleNumberChange = (event) => {
     setNewNumber(event.target.value)
   }
-  
-  const searchItems = (event) => {
-    if (event.target.value.trim().length === 0) {
-      setFilteredData([])
-    }
-    const filteredData = persons.filter(person => person.name.toLowerCase() === event.target.value.toLowerCase())
-    setFilteredData(filteredData)
-  } 
 
   const removePerson = (id) => {
-    personService
+    const person = persons.filter(p => p.id === id)
+    if (window.confirm(`Delete ${person[0].name} ?`)) {
+      personService
       .deletePerson(id)
       .then(
         setPersons(persons.filter(p => p.id !== id))
       )
-      .catch(error => console.log(error))
+    }
   }
 
   return (
