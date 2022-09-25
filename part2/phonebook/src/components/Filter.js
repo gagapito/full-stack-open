@@ -6,7 +6,6 @@ const Filter = ({ handleChange }) => {
             <input type='text' placeholder='Search...' onChange={handleChange} />
         </div>
     )
-
 }
     
 export default Filter

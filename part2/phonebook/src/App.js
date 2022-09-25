@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import Filter from './components/Filter'
 import PersonForm from './components/PersonForm'
 import Persons from './components/Persons'
+import Notification from './components/Notification'
 import personService from './services/persons'
 
 const App = () => {
@@ -9,6 +10,7 @@ const App = () => {
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [filteredData, setFilteredData] = useState([])
+  const [message, setMessage] = useState(null)
 
   useEffect(() => {
     personService
@@ -38,9 +40,23 @@ const App = () => {
         personService
           .update(updatedPerson.id, updatedPerson)
           .then(returnedPerson => {
-            setPersons(persons.map(p => p.id !== personToAdd.id ? person : returnedPerson))
+            setPersons(persons.map(p => p.id !== personToAdd.id ? p : returnedPerson))
             setNewName('')
             setNewNumber('')
+            setMessage(`Updated ${updatedPerson.name} number`)
+            setTimeout(() => {
+              setMessage(null)
+            }, 5000)
+          })
+          .catch(error => {
+            console.log(error)
+            setPersons(persons.filter(p => p.id !== updatedPerson.id))
+            setNewName('')
+            setNewNumber('')
+            setMessage(`[ERROR] ${updatedPerson.name} was already deleted from server`)
+            setTimeout(() => {
+              setMessage(null)
+            }, 5000)
           })
       }
     } else {
@@ -58,6 +74,17 @@ const App = () => {
           setPersons(persons.concat(returnedPerson))
           setNewName('')
           setNewNumber('')
+          setMessage(`Added ${newPersonObject.name}`)
+          setTimeout(() => {
+            setMessage(null)
+          }, 5000)
+        })
+        .catch(error => {
+          setMessage(`[ERROR] ${error.response.data.error}`)
+          setTimeout(() => {
+            setMessage(null)
+          }, 5000)
+          console.log(error.response.data)
         })
       } else {
         const newPersonObject = {
@@ -71,17 +98,20 @@ const App = () => {
           setPersons(persons.concat(returnedPerson))
           setNewName('')
           setNewNumber('')
+          setMessage(`Added ${newPersonObject.name}`)
+          setTimeout(() => {
+            setMessage(null)
+          }, 5000)
+        })
+        .catch(error => {
+          setMessage(`[ERROR] ${error.response.data.error}`)
+          setTimeout(() => {
+            setMessage(null)
+          }, 5000)
+          console.log(error.response.data)
         })
       } 
     }
-  }
-  
-  const handleNameChange = (event) => {
-    setNewName(event.target.value)
-  }
-
-  const handleNumberChange = (event) => {
-    setNewNumber(event.target.value)
   }
 
   const removePerson = (id) => {
@@ -92,12 +122,25 @@ const App = () => {
       .then(
         setPersons(persons.filter(p => p.id !== id))
       )
+      setMessage(`${person[0].name} was successfully deleted`)
+      setTimeout(() => {
+        setMessage(null)
+      }, 5000)
     }
+  }
+
+  const handleNameChange = (event) => {
+    setNewName(event.target.value)
+  }
+
+  const handleNumberChange = (event) => {
+    setNewNumber(event.target.value)
   }
 
   return (
     <div>
       <h2>Phonebook</h2>
+      <Notification message={message} />
       <Filter handleChange={searchItems} />
       <h3>Add a new</h3>
       <PersonForm onSubmit={addPerson} newName={newName} handleNameChange={handleNameChange} newNumber={newNumber} handleNumberChange={handleNumberChange} />
@@ -107,4 +150,4 @@ const App = () => {
   )
 }
 
-export default App;
+export default App
